@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie</title>
+  <script>
+  </script>
+</head>
+
+<body>
+  <div id="movie">
+    <h4>영화 검색 : <input type="text" v-model="name"></h4>
+    <h3>{{ name }} 에 대한 검색 결과</h3>
+    <div v-for="(onemovie) in movie">
+      <br>
+      <img :src="getPosterPath(onemovie.poster_path)">
+      <br>
+      <h4>{{ onemovie.original_title }}</h4>
+      {{ onemovie.overview }}
+      <br>
+      <br>
+    </div>
+  </div>
+
+  <script>
+    // 새로운 Vue 선언 및 생성
+    var movieVue = new Vue({
+      // id값을 식별해줄 el
+      el: '#movie',
+
+      // data의 인자들
+      data: {
+        movie: '',
+        name: ''
+      },
+
+      watch: {
+        // v-model이 name인 놈에 대해 상시 watch
+        name: function (val) {
+
+          // debouncedGetMovie 메소드 호출
+          // 현재로서는 그냥 메소드임
+          this.debouncedGetMovie(val);
+        }
+      },
+
+      // 이 웹페이지는 생성과 동시에 하위 created를 호출한다
+      created: function () {
+        // 생성시 모든 영화를 보여주기 위해 한 번 호출
+        this.getMovie();
+        // debouncedGetMovie 메소드 생성. 이는 watch에 의해 호출된다
+        this.debouncedGetMovie
+          = _.debounce((name) => { this.getMovie(name); }, 1000);
+      },
+
+      methods: {
+        getMovie: function (name) {
+          axios.get('https://api.themoviedb.org/3/movie/upcoming?api_key=a64533e7ece6c72731da47c9c8bc691f&language=ko-KR&page=1').
+            then((response) => {
+
+              // result를 모든 영화로 초기화
+              let result = response.data.results;
+
+              // 초기화면 및 검색어가 비어 있을 때 그대로 return
+              if (name == null || name == undefined || name == '') {
+                this.movie = result;
+                return;
+              }
+
+              // 여기까지 도달했다 = 새로운 검색어에 대한 result2가 필요
+              var result2 = [];
+
+              // 모든 영화를 담은 result에 대해 검색어 include시 result2에 추가
+              result.forEach(element => {
+
+                // 제목과 검색어 모두 toLowerCase를 통해 소문자로 바꿔서 대소문자 구별 없이
+                if (element.original_title.toLowerCase().includes(name.toLowerCase())) {
+                  // 기준 통과시 result2에 push
+                  result2.push(element);
+                }
+
+              });
+
+              // result2를 data에 담는다
+              this.movie = result2;
+
+            }).catch(function (error) {
+              console.log(error);
+            });
+        },
+
+        // 영화 포스터 이미지의 경로 앞의 공통적인 부분을 더해주는 메소드
+        getPosterPath(path) {
+          var posterpath = "https://image.tmdb.org/t/p/w500/";
+          return posterpath + path;
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
