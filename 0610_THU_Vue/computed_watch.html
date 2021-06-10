@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> // vue
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> // axios
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script> // lodash
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app-3">
+    <input type="text" v-model="message">
+    <p>원본 : {{ message }} </p>
+    <p>역순 : {{ reversedMessage }} </p>
+    <p>역순을 div에서 바로(비추천) : {{ message.split('').reverse().join('') }}</p>
+    <p>메소드 이용 : {{ reversedMessage2() }}</p>
+    <p>시간 : {{now}}</p>
+  </div>
+
+  <div id="app-4">
+    <input type="text" v-model="firstName">
+    <input type="text" v-model="lastName">
+    <p>풀 네임은 ? {{ fullName }} </p>
+  </div>
+
+  <div id="app-5">
+    <input type="text" v-model="id">
+    todo 뽑아오기 : {{ todo }}
+  </div>
+
+
+
+  <script>
+    var app3 = new Vue({
+      el: '#app-3',
+      data: {
+        message: '나는시장에간다',
+      }, 
+      computed: {
+        now: function () {
+          return  `${Date.now()} : ${this.message}`; 
+        },
+
+        reversedMessage: function() {
+          return this.message.split('').reverse().join('')
+        }
+      },
+      methods: {
+        reversedMessage2: function () {
+          return this.message.split('').reverse().join('')
+        }
+      },
+      
+    })
+  </script>
+  <script>
+    var app4 = new Vue({
+
+      el: '#app-4',
+
+      data: {
+        firstName: '',
+        lastName: '',
+        fullName: ''
+      },
+
+      watch: {
+        firstName: function (val) {
+          this.fullName = `${val} ${this.lastName}`
+        },
+
+        lastName: function (val) {
+          this.fullName = `${this.firstName} ${val}`
+        }
+      }
+    })
+  </script>
+  <script>
+    var app5 = new Vue({
+
+      el: '#app-5',
+
+      data: {
+        todo: '',
+        id: '1'
+      },
+
+      // created: function() {
+      //   console.log('이거 되나?');
+      //   axios.get('https://jsonplaceholder.typicode.com/todos/1').
+      //   then((response) => {
+      //     this.todo = response.data.title;
+      //     console.log('ok : ' + response);
+      //   }).catch(function (error) {
+      //     console.log('error : ' + error);
+      //   });
+      // },
+      watch: {
+        id: function (val) {
+          if (val == '') {
+            return;
+          }
+          this.debouncedGetTodo(val);
+        }
+      },
+
+      created: function() {
+        console.log('created!');
+        this.getTodo(1);
+       //  this.debouncedGetTodo = (id) => _.debounce(this.getTodo(id), 500);
+        this.debouncedGetTodo = _.debounce( (id) => {
+          this.getTodo(id);
+        }, 1000);
+      },
+      
+      methods: {
+        getTodo: function (id) {
+          axios.get('https://jsonplaceholder.typicode.com/todos/' + id).
+          then((response) => {
+            this.todo = response.data.title;
+            console.log('ok : ' + response);
+          }).catch(function (error) {
+            console.log('error : ' + error);
+          });
+        }
+      }
+    })
+  </script>
+</body>
+</html>
